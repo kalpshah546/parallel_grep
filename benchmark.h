@@ -10,4 +10,8 @@ void runBenchmark(
     const std::filesystem::path& directory,
     const std::string& keyword);
 
+void runWorkerSweepBenchmark(
+    const std::filesystem::path& directory,
+    const std::string& keyword);
+
 #endif
