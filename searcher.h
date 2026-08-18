@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string>
 #include <filesystem>
+#include <atomic>
 #include "threadpool.h"
 
 struct SearchResult
@@ -16,9 +17,15 @@ class Searcher
 {
 private:
     ThreadPool& pool;
+    std::atomic<bool>* cancelled;
+
+    bool isCancelled() const
+    {
+        return cancelled && cancelled->load(std::memory_order_relaxed);
+    }
 
 public:
-    Searcher(ThreadPool& pool);
+    Searcher(ThreadPool& pool, std::atomic<bool>* cancelled = nullptr);
 
     std::vector<SearchResult> searchFile(
         const std::filesystem::path& file,

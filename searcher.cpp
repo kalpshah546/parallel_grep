@@ -1,9 +1,10 @@
 #include "searcher.h"
 #include <fstream>
 #include <iostream>
-
-Searcher::Searcher(ThreadPool& pool) : pool(pool) {}
 #include <unordered_set>
+
+Searcher::Searcher(ThreadPool& pool, std::atomic<bool>* cancelled)
+    : pool(pool), cancelled(cancelled) {}
 
 bool isBinaryFile(const std::filesystem::path& file)
 {
@@ -31,6 +32,9 @@ std::vector<SearchResult> Searcher::searchFile(
     int lineNumber = 0;
 
     while (std::getline(infile, line)) {
+        if (isCancelled()) {
+            return results;
+        }
         lineNumber++;
         if (line.find(keyword) != std::string::npos) {
             results.push_back({file.string(), lineNumber, line});
@@ -47,6 +51,9 @@ std::vector<SearchResult> Searcher::sequentialSearch(
     std::vector<SearchResult> allResults;
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(directory)) {
+        if (isCancelled()) {
+            break;
+        }
         if (entry.is_regular_file() && !isBinaryFile(entry.path())) {
             auto fileResults = searchFile(entry.path(), keyword);
             allResults.insert(allResults.end(), fileResults.begin(), fileResults.end());
@@ -62,6 +69,9 @@ std::vector<SearchResult> Searcher::parallelSearch(
 {
     std::vector<std::filesystem::path> files;
     for (const auto& entry : std::filesystem::recursive_directory_iterator(directory)) {
+        if (isCancelled()) {
+            break;
+        }
         if (entry.is_regular_file() && !isBinaryFile(entry.path())) {
             files.push_back(entry.path());
         }
@@ -71,6 +81,9 @@ std::vector<SearchResult> Searcher::parallelSearch(
     futures.reserve(files.size());
 
     for (const auto& file : files) {
+        if (isCancelled()) {
+            break;
+        }
         futures.push_back(
             pool.submit(
                 [this, file, keyword]() {

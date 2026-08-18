@@ -27,5 +27,12 @@ add_executable(threadpool_test
     threadpool.cpp
 )
 
+add_executable(cancellation_test
+    cancellation_test.cpp
+    searcher.cpp
+    threadpool.cpp
+)
+
 target_link_libraries(parallel_grep PRIVATE Threads::Threads)
 target_link_libraries(threadpool_test PRIVATE Threads::Threads)
+target_link_libraries(cancellation_test PRIVATE Threads::Threads)
