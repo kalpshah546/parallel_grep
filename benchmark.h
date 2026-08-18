@@ -8,7 +8,8 @@
 void runBenchmark(
     Searcher& searcher,
     const std::filesystem::path& directory,
-    const std::string& keyword);
+    const std::string& keyword,
+    int workers);
 
 void runWorkerSweepBenchmark(
     const std::filesystem::path& directory,

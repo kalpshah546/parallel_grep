@@ -46,7 +46,8 @@ std::vector<SearchResult> Searcher::searchFile(
 
 std::vector<SearchResult> Searcher::sequentialSearch(
     const std::filesystem::path& directory,
-    const std::string& keyword)
+    const std::string& keyword,
+    SearchMetrics* metrics)
 {
     std::vector<SearchResult> allResults;
 
@@ -57,7 +58,14 @@ std::vector<SearchResult> Searcher::sequentialSearch(
         if (entry.is_regular_file() && !isBinaryFile(entry.path())) {
             auto fileResults = searchFile(entry.path(), keyword);
             allResults.insert(allResults.end(), fileResults.begin(), fileResults.end());
+            if (metrics) {
+                ++metrics->filesProcessed;
+            }
         }
+    }
+
+    if (metrics) {
+        metrics->matchesFound = allResults.size();
     }
 
     return allResults;
@@ -65,7 +73,8 @@ std::vector<SearchResult> Searcher::sequentialSearch(
 
 std::vector<SearchResult> Searcher::parallelSearch(
     const std::filesystem::path& directory,
-    const std::string& keyword)
+    const std::string& keyword,
+    SearchMetrics* metrics)
 {
     std::vector<std::filesystem::path> files;
     for (const auto& entry : std::filesystem::recursive_directory_iterator(directory)) {
@@ -97,6 +106,15 @@ std::vector<SearchResult> Searcher::parallelSearch(
     for (auto& fut : futures) {
         auto fileResults = fut.get();
         allResults.insert(allResults.end(), fileResults.begin(), fileResults.end());
+        if (metrics) {
+            ++metrics->tasksCompleted;
+            ++metrics->filesProcessed;
+        }
+    }
+
+    if (metrics) {
+        metrics->tasksSubmitted = futures.size();
+        metrics->matchesFound = allResults.size();
     }
 
     return allResults;

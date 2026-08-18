@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     ThreadPool pool(threadCount);
     Searcher searcher(pool);
 
-    runBenchmark(searcher, directory, keyword);
+    runBenchmark(searcher, directory, keyword, threadCount);
 
     return 0;
 }

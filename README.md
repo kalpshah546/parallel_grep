@@ -1,87 +1,89 @@
-# Parallel Grep — Multithreaded File Content Search (C++)
+# Parallel Grep — Multithreaded File Search in C++
 
-A command-line tool that searches file contents for a keyword across a directory tree, using a custom-built thread pool to parallelize the search across multiple worker threads. Includes a built-in benchmark comparing sequential vs parallel search performance.
+A command-line tool that recursively scans a directory tree for a keyword and distributes the file-reading work across a custom thread pool. The project includes both a normal search mode and a benchmark mode to compare sequential and parallel performance.
 
 ## Why this project
 
-Sequential directory search wastes CPU: when searching hundreds or thousands of files, most of the time is spent waiting on I/O for one file at a time while other CPU cores sit idle. This project distributes file search work across a pool of worker threads, so multiple files are read and searched concurrently , with the actual thread pool built from scratch (not `std::async` or a library) to understand what's happening underneath.
+When a directory contains hundreds or thousands of files, a single-threaded scan spends most of its time waiting on disk I/O instead of using the CPU. This project spreads the work across worker threads so multiple files can be searched concurrently.
+
+The thread pool is implemented from scratch with a task queue, worker threads, and synchronization primitives rather than using a higher-level abstraction like `std::async`.
 
 ## Features
 
 - Recursive directory search for a keyword substring in file contents
-- Custom thread pool implementation (task queue, condition variable synchronization, `std::future`-based result retrieval)
-- Sequential vs parallel benchmarking built in, with timing and speedup reported per run
-- Configurable thread count via CLI argument
-- Skips binary files (images, executables, archives, etc.) by extension
-- CMake build support
+- Custom thread pool implementation with a task queue and `std::future` result handling
+- Sequential and parallel search paths with correctness checking
+- Built-in benchmark runner for comparing workers across a sweep
+- Configurable worker count from the command line
+- Binary-file filtering by extension
+- Cancellation-aware file search support for stopping work early
+- CMake-based build configuration
 
-## Architecture
+## Project layout
 
+```text
+main.cpp           → CLI entry point, argument parsing, dispatch
+threadpool.h/.cpp  → Generic thread pool implementation
+searcher.h/.cpp    → File scanning, recursive traversal, sequential/parallel logic
+benchmark.h/.cpp   → Timing and speedup reporting
+metrics.h          → Common metrics/reporting helpers
+cancellation_test.cpp → Cancellation-path validation
+threadpool_test.cpp → Thread-pool validation
 ```
-main.cpp        → CLI entry point, argument parsing, wiring
-threadpool.h    → Generic thread pool: task queue + worker threads + future-based results
-searcher.h/.cpp → Directory traversal, per-file keyword search (sequential + parallel paths)
-benchmark.h/.cpp→ Runs both search modes, times them, reports speedup
-```
-
-The thread pool is generic , it accepts any callable via a variadic template (`submit(F&&, Args&&...)`) and returns a `std::future` for the result, so it isn't tied to the search use case specifically.
 
 ## Build
 
 ### With CMake (recommended)
 
 ```bash
-mkdir build && cd build
-cmake ..
-cmake --build .
+cmake -S . -B build
+cmake --build build
 ```
 
-### Direct compilation
-
-```bash
-g++ -std=c++17 -O2 -pthread main.cpp searcher.cpp benchmark.cpp threadpool.cpp -o parallel_grep
-```
+The executable is created at `./build/parallel_grep`.
 
 ## Usage
 
 ```bash
-./parallel_grep <directory> <keyword> [thread_count]
+./build/parallel_grep <directory> <keyword> [thread_count]
+./build/parallel_grep --benchmark <directory> <keyword>
 ```
 
-- `directory` — path to search (recursive)
-- `keyword` — substring to search for in file contents
+- `directory` — root directory to search recursively
+- `keyword` — text to find within file contents
 - `thread_count` — optional, defaults to 8
 
-Example:
+Examples:
+
 ```bash
-./parallel_grep ./test_data ERROR 8
+./build/parallel_grep ./test_data ERROR 8
+./build/parallel_grep --benchmark ./test_data ERROR
 ```
 
-## Generating test data
+## Sample data
 
-Sample test files aren't included in the repo (generated data doesn't belong in version control). Generate your own:
+The repository includes a sample tree under `test_data/` for quick benchmarking and validation. The benchmark compares the sequential baseline against parallel runs using worker counts of 1, 2, 4, and 8.
 
-```powershell
-./generate_test_data.ps1
-```
+## Sample output
 
-This creates 2000 sample `.txt` files of varying size, with "ERROR" seeded into roughly every 3rd file — giving a known expected match count to verify correctness against.
+```text
+Searching './test_data' for 'ERROR' using 8 threads...
 
-## Sample results
-
-```
-Sequential matches: 666
-Parallel matches:   666
-Sequential time: 842.3 ms
-Parallel time:   211.7 ms
+========== Results ==========
+Files processed: 2000
+Matches: 666
+Workers: 8
+Time: 211.7 ms
 Speedup: 3.98x
+==============================
 ```
 
-(Actual numbers vary by machine, file count/size, and thread count. Run your own benchmark — see below.)
+Actual result values vary by machine, input size, and hardware.
 
 ## Design notes
 
-- **Why a custom thread pool instead of `std::async`:** built from scratch to understand and be able to explain the underlying mechanics — task queue management, condition variable signaling, and `packaged_task`/`future` wiring — rather than relying on a black-box abstraction.
-- **Why check `sequential matches == parallel matches`:** this is the correctness check for the parallel path. A fast but wrong answer (e.g. from a race condition or dropped task) is worse than a slow correct one — this comparison catches that class of bug.
-- **Why exclude binary files:** searching binary content with a text keyword produces meaningless matches and wastes work; filtering by extension is a lightweight fix. A more robust version would sniff the first bytes of a file for null characters, similar to how `grep` decides a file is binary.
+- Why a custom thread pool instead of `std::async`: the project is intentionally educational. Building the queue, worker loop, and future handoff from scratch makes the synchronization model visible and explainable.
+- Why check `sequential matches == parallel matches`: a fast, incorrect result is worse than a slow, correct one. This comparison guards against dropped tasks or race conditions.
+- Why exclude binary files: searching raw binary data for a text keyword is usually meaningless and expensive. Extension-based filtering keeps the tool focused on text files.
+- Why include a benchmark sweep: it makes the behavior more transparent than a single timing number and highlights how parallelism changes with worker count.
 

@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <atomic>
 #include "threadpool.h"
+#include "metrics.h"
 
 struct SearchResult
 {
@@ -33,10 +34,12 @@ public:
 
     std::vector<SearchResult> parallelSearch(
         const std::filesystem::path& directory,
-        const std::string& keyword);
+        const std::string& keyword,
+        SearchMetrics* metrics = nullptr);
 
     std::vector<SearchResult> sequentialSearch(
         const std::filesystem::path& directory,
-        const std::string& keyword);
+        const std::string& keyword,
+        SearchMetrics* metrics = nullptr);
 };
 #endif
