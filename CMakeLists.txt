@@ -16,10 +16,16 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 find_package(Threads REQUIRED)
 
 add_executable(parallel_grep
-    main.c++
-    searcher.c++
+    main.cpp
+    searcher.cpp
     benchmark.cpp
     threadpool.cpp
 )
 
+add_executable(threadpool_test
+    threadpool_test.cpp
+    threadpool.cpp
+)
+
 target_link_libraries(parallel_grep PRIVATE Threads::Threads)
+target_link_libraries(threadpool_test PRIVATE Threads::Threads)

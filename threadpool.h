@@ -8,6 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <future>
+#include <memory>
+#include <stdexcept>
 
 class ThreadPool
 {
@@ -28,12 +30,15 @@ public:
 
     {
         std::unique_lock<std::mutex> lock(queueMutex);
+        if (stop) {
+            throw std::runtime_error("submit on stopped ThreadPool");
+        }
         tasks.emplace([task]() { (*task)(); });
     }
-        cv.notify_one();
+    cv.notify_one();
 
-        return res;
-    }   
+    return res;
+    }
 
 private:
     std::vector<std::thread> threads;
@@ -44,7 +49,7 @@ private:
 
     std::condition_variable cv;
 
-    bool stop;
+    bool stop{false};
 };
 
 #endif

@@ -3,7 +3,6 @@
 using namespace std;
 
 ThreadPool::ThreadPool(size_t n){
-    stop=false;
     for(size_t i=0;i<n;i++){
         threads.emplace_back(
             [this](){
