@@ -24,7 +24,7 @@ To go beyond standard execution, this repository includes an end-to-end Python b
 
 ---
 
-## 🚀 Quickstart & Usage
+## Quickstart & Usage
 
 ### 1. Build the C++ Executable
 Requires a C++17 compatible compiler and CMake:
