@@ -11,10 +11,11 @@ except ImportError:
     psutil = None
 
 
-EXE_PATH_BUILD = Path("build/parallel_grep.exe")
-EXE_PATH_ROOT = Path("parallel_grep.exe")
-SYNTHETIC_DIR = Path("synthetic_test_data")
-RESULTS_CSV = Path("benchmark_results.csv")
+BASE_DIR = Path(__file__).parent.resolve()
+EXE_PATH_BUILD = BASE_DIR / "build" / "parallel_grep.exe"
+EXE_PATH_ROOT = BASE_DIR / "parallel_grep.exe"
+SYNTHETIC_DIR = BASE_DIR / "synthetic_test_data"
+RESULTS_CSV = BASE_DIR / "benchmark_results.csv"
 
 
 def find_or_build_executable():
@@ -109,18 +110,19 @@ def run_benchmark_matrix():
             for thread_count in threads:
                 cmd = [exe, str(dir_name), keyword, str(thread_count)]
                 
+                if psutil:
+                    psutil.cpu_percent(interval=None)
+                
                 start_time = time.perf_counter()
+                proc = subprocess.run(cmd, capture_output=True, text=True)
+                end_time = time.perf_counter()
                 
                 if psutil:
-                    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    cpu_pct = measure_cpu_utilization(proc)
-                    stdout, stderr = proc.communicate()
+                    cpu_pct = psutil.cpu_percent(interval=None)
                 else:
-                    proc = subprocess.run(cmd, capture_output=True, text=True)
-                    stdout, stderr = proc.stdout, proc.stderr
                     cpu_pct = 0.0
                     
-                end_time = time.perf_counter()
+                stdout, stderr = proc.stdout, proc.stderr
                 runtime_sec = max(end_time - start_time, 0.0001)
                 throughput_mbs = actual_mb / runtime_sec
                 

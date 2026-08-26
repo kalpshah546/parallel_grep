@@ -20,3 +20,7 @@ compile_commands.json
 
 # Misc
 *.log
+
+# Synthetic test data & Python cache
+synthetic_test_data/
+__pycache__/
