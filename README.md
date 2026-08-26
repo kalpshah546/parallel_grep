@@ -1,4 +1,4 @@
-# Parallel Grep — Multithreaded C++ File Search & Performance Analytics
+# Parallel Grep :: Multithreaded C++ File Search & Performance Analytics
 
 A high-performance command-line search engine built in C++ that scans directory trees concurrently using a custom-built thread pool. 
 
@@ -7,7 +7,7 @@ To go beyond standard execution, this repository includes an end-to-end Python b
 
 ---
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```text
 ├── main.cpp                # CLI entry point, flag parsing & search dispatcher
@@ -60,7 +60,7 @@ Speedup: 82.4x
 
 ---
 
-## 📊 Performance Analysis & Data Insights
+## Performance Analysis & Data Insights
 
 
 ### Benchmark Matrix Methodology
@@ -71,7 +71,7 @@ Speedup: 82.4x
 
 ---
 
-### 🔑 Key Findings (Empirical Data)
+### Key Findings (Empirical Data)
 
 1. **Optimal Processing Scale (Peak Throughput)**:
    - Maximum processing speed peaked at **85.07 MB/s** on 100 MB datasets using **4 worker threads**.
@@ -82,7 +82,7 @@ Speedup: 82.4x
 
 ---
 
-### 📈 Performance Visualizations
+### Performance Visualizations
 
 #### 1. Processing Throughput vs. Thread Count
 ![Throughput vs Thread Count](charts/throughput_vs_threads.png)
@@ -98,7 +98,7 @@ Speedup: 82.4x
 
 ---
 
-## 💡 Executive Recommendation
+## Executive Recommendation
 
 > **Actionable Takeaway for System Resource Allocation:**
 > - **Small Workloads (< 50 MB)**: Allocate **2 worker threads**. This minimizes thread creation overhead while doubling search speed over single-threaded execution.
@@ -106,7 +106,7 @@ Speedup: 82.4x
 
 ---
 
-## 🧪 Running the Analysis Harness
+##  Running the Analysis Harness
 
 To run the benchmarking suite and regenerate analysis charts yourself:
 
