@@ -4,24 +4,6 @@ A high-performance command-line search engine built in C++ that scans directory 
 
 To go beyond standard execution, this repository includes an end-to-end Python benchmarking and data analysis suite (`benchmark.py` & `analyze_benchmarks.py`) that measures runtime scalability, throughput limits, and hardware resource saturation to deliver data-backed deployment recommendations.
 
----
-
-## 💡 Why This Project?
-
-When searching through thousands of log files or large codebases, single-threaded tools spend most of their time waiting on disk I/O instead of utilizing modern multi-core processors. 
-
-This project solves that by distributing file reading across worker threads. Rather than using higher-level abstractions like `std::async`, the core thread pool, task queue, and worker synchronization are implemented completely **from scratch in C++** for full visibility and control over thread lifecycles.
-
----
-
-## ✨ Features
-
-- **Custom C++ Thread Pool**: Built with worker thread loops, generic task queues, and `std::future` result handling.
-- **Concurrent Directory Search**: Recursively traverses file paths and scans file contents in parallel.
-- **Smart Filtering**: Automatically filters out binary file formats to prevent unreadable search noise.
-- **Cancellation Awareness**: Supports early termination signals to stop work in flight.
-- **Automated Benchmarking Harness (`benchmark.py`)**: Runs parameter sweeps across file sizes (1MB to 500MB), worker counts (1 to 32), and pattern complexities.
-- **Data Analysis & Visualization (`analyze_benchmarks.py`)**: Uses Pandas and Matplotlib to aggregate performance metrics, detect hardware bottlenecks, and plot performance charts.
 
 ---
 
@@ -80,8 +62,6 @@ Speedup: 82.4x
 
 ## 📊 Performance Analysis & Data Insights
 
-### Business & Technical Framing
-To evaluate real-world ROI when scaling compute resources, we benchmarked the tool across a matrix of 48 distinct execution environments. The goal was to identify the exact **point of diminishing returns** where adding more CPU threads stops improving speed and starts wasting resources.
 
 ### Benchmark Matrix Methodology
 - **Dataset Sizes**: 1 MB, 10 MB, 100 MB, and 500 MB synthetic log file directories.
