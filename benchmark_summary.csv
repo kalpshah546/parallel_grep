@@ -1,0 +1,5 @@
+file_size_tier_mb,optimal_thread_count,max_throughput_mbs,min_runtime_sec,peak_cpu_utilization_pct,best_pattern_complexity
+1,2,26.08,0.0389,152.1,complex
+10,2,65.26,0.1553,191.07,complex
+100,4,85.07,1.1912,197.56,complex
+500,2,54.71,9.261,141.38,simple
